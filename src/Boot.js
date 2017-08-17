@@ -1,6 +1,7 @@
 'use strict';
 
 const Mod = require('./Mod');
+const Use = require('./Use');
 
 module.exports = class Boot {
 
@@ -18,6 +19,7 @@ module.exports = class Boot {
     global.log = this.log.bind(this);
     global.debug = this.debug.bind(this);
     global.boot = this;
+    new Use();
   }
 
   mods() {
@@ -27,8 +29,7 @@ module.exports = class Boot {
 
       for (const index in mods) {
         try {
-          const mod = new Mod(this.load(mods[index]));
-          this._mods[mod.key()] = mod;
+          this.addMod(this.load(mods[index]));
         } catch (e) {
           debug('core', 'Try to load module ["0]', mods[index]);
           throw e;
@@ -38,21 +39,32 @@ module.exports = class Boot {
     return this._mods;
   }
 
+  addMod(data) {
+    const mod = new Mod(data);
+    this._mods[mod.key()] = mod;
+  }
+
   log(...args) {
     console.log.apply(console, args);
   }
 
-  debug(channel, notice, ...args) {
-    if (!this.isDebug()) return;
-    channel = channel.toUpperCase();
+  debug(mod, notice, ...args) {
+    const channel = this.debugChannel();
+    if (!channel) return;
+    mod = mod.toUpperCase();
 
-    const line = ['DEBUG [' + channel + ']:'];
+    const line = ['DEBUG [' + mod + ']:'];
 
     for (const index in args) {
       notice = notice.replace(new RegExp('\\[([^\\d]*?)' + index + '\\]', 'g'), '$1' + args[index] + '$1');
     }
     line.push(notice);
-    console.log(line.join(' '));
+
+    switch (channel) {
+      case 'console':
+        console.log(line.join(' '));
+        break;
+    }
   }
 
   load(name) {
@@ -78,7 +90,7 @@ module.exports = class Boot {
     return this.mods()[key];
   }
 
-  isDebug() {
+  debugChannel() {
     return this.setting('log.debug', false);
   }
 
