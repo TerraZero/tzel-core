@@ -2,6 +2,9 @@
 
 const Mod = require('./Mod');
 const Use = require('./Use');
+const Parser = require('./reflect/AnnotationParser');
+const fs = require('graceful-fs');
+const Glob = require('glob');
 
 module.exports = class Boot {
 
@@ -13,6 +16,8 @@ module.exports = class Boot {
   boot() {
     this.globals();
     this.mods();
+    this.annotations();
+    this.scanning();
   }
 
   globals() {
@@ -37,6 +42,33 @@ module.exports = class Boot {
       }
     }
     return this._mods;
+  }
+
+  annotations() {
+    for (const name in this.mods()) {
+      const mod = this.mod(name);
+      const dir = mod.file('annotations');
+      let files = null;
+
+      try {
+        files = fs.readdirSync(dir);
+      } catch (e) {
+        files = [];
+      }
+      for (const file of files) {
+        Parser.register(mod.file('annotations/' + file));
+      }
+    }
+  }
+
+  scanning() {
+    for (const name in this.mods()) {
+      const files = Glob.sync('**/*.js', {
+        cwd: this.mod(name).file(''),
+        absolute: true,
+      });
+
+    }
   }
 
   addMod(data) {

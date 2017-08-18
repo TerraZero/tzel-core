@@ -15,17 +15,21 @@ module.exports = class Use {
 
     return new Proxy(function () { }, {
 
-      construct: function construct(target, args, newTarget) {
+      getClass: function getClass(target) {
+        if (target.class === undefined) {
+          target.class = require(that.lookup(path));
+        }
+        return target.class;
+      },
 
+      construct: function construct(target, args, newTarget) {
+        return Reflect.construct(this.getClass(target), args, newTarget);
       },
 
       get: function get(target, property, receiver) {
         switch (property) {
           case 'class':
-            if (target.class === undefined) {
-              target.class = require(that.lookup(path));
-            }
-            return target.class;
+            return this.getClass(target);
           case '__file':
             return that.lookup(path);
           case '__path':
@@ -37,7 +41,7 @@ module.exports = class Use {
   }
 
   serve(service) {
-
+    const that = this;
   }
 
   lookup(path) {
@@ -46,7 +50,7 @@ module.exports = class Use {
     const file = parts.join('/');
     const mod = boot.mod(modName);
 
-    return Path.join(mod.path(), mod.src(), file);
+    return mod.file(file);
   }
 
 }
