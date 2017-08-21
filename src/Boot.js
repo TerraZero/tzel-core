@@ -11,13 +11,13 @@ module.exports = class Boot {
   constructor(settings) {
     this._settings = settings;
     this._mods = null;
+    this._datas = null;
   }
 
   boot() {
     this.globals();
-    this.mods();
     this.annotations();
-    this.scanning();
+    this.subscribing();
   }
 
   globals() {
@@ -27,7 +27,7 @@ module.exports = class Boot {
     new Use();
   }
 
-  mods() {
+  getMods() {
     if (this._mods === null) {
       this._mods = {};
       const mods = this.setting('modules.enabled', []);
@@ -45,7 +45,7 @@ module.exports = class Boot {
   }
 
   annotations() {
-    for (const name in this.mods()) {
+    for (const name in this.getMods()) {
       const mod = this.mod(name);
       const dir = mod.file('annotations');
       let files = null;
@@ -56,18 +56,44 @@ module.exports = class Boot {
         files = [];
       }
       for (const file of files) {
-        Parser.register(mod.file('annotations/' + file));
+        const abs = mod.file('annotations/' + file);
+
+        Parser.register(abs);
       }
     }
   }
 
-  scanning() {
-    for (const name in this.mods()) {
-      const files = Glob.sync('**/*.js', {
-        cwd: this.mod(name).file(''),
-        absolute: true,
-      });
+  getDatas() {
+    if (this._datas === null) {
+      this._datas = [];
+      for (const name in this.getMods()) {
+        const mod = this.mod(name);
+        const files = Glob.sync('**/*.js', {
+          cwd: mod.file(),
+          absolute: true,
+        });
 
+        for (const index in files) {
+          const parser = new Parser(files[index]);
+          const data = parser.getData();
+
+          data.setUse(mod);
+          this._datas.push(data);
+        }
+      }
+    }
+    return this._datas;
+  }
+
+  subscribing() {
+    const Provider = use('core/annotations/Provider');
+    const datas = this.getDatas();
+    const subscriber = [];
+
+    for (const index in datas) {
+      if (datas[index].hasTag(Provider.name)) {
+        subscriber.push(datas[index]);
+      }
     }
   }
 
@@ -119,7 +145,7 @@ module.exports = class Boot {
   }
 
   mod(key) {
-    return this.mods()[key];
+    return this.getMods()[key];
   }
 
   debugChannel() {

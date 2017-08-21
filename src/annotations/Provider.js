@@ -2,7 +2,7 @@
 
 const Annotation = use('core/reflect/Annotation');
 
-module.exports = class Service extends Annotation.class {
+module.exports = class Provider extends Annotation.class {
 
   static get targets() { return [this.DEFINITION] }
 

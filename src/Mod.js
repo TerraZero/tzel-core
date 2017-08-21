@@ -40,7 +40,7 @@ module.exports = class Mod {
     return this.info().version;
   }
 
-  file(file) {
+  file(file = '') {
     return Path.join(this.path(), this.src(), file);
   }
 

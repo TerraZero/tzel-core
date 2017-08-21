@@ -3,6 +3,7 @@
 const AnnotationBase = require('tzero-annotations');
 const Reader = AnnotationBase.Reader;
 const Annotation = require('./Annotation');
+const AnnotationData = require('./AnnotationData');
 
 const registry = new AnnotationBase.Registry();
 
@@ -22,6 +23,7 @@ module.exports = class AnnotationParser {
   constructor(path) {
     this._reader = new Reader(registry);
     this._path = path;
+    this._data = null;
 
     this._reader.parse(path);
   }
@@ -31,8 +33,23 @@ module.exports = class AnnotationParser {
    *
    * @return {string}
    */
-  getPath() {
+  path() {
     return this._path;
+  }
+
+  getData() {
+    if (this._data === null) {
+      this._data = new AnnotationData(this.path());
+
+      if (this._reader.definitionAnnotations) {
+        this._data.addData(this._reader.definitionAnnotations, Annotation.DEFINITION);
+      }
+
+      if (this._reader.methodAnnotations) {
+        this._data.addData(this._reader.methodAnnotations, Annotation.METHOD);
+      }
+    }
+    return this._data;
   }
 
   /**

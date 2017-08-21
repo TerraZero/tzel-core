@@ -22,6 +22,13 @@ module.exports = class Use {
         return target.class;
       },
 
+      getName: function getName(target) {
+        if (target.classname === undefined) {
+          target.classname = path.split('/').pop();
+        }
+        return target.classname;
+      },
+
       construct: function construct(target, args, newTarget) {
         return Reflect.construct(this.getClass(target), args, newTarget);
       },
@@ -30,6 +37,8 @@ module.exports = class Use {
         switch (property) {
           case 'class':
             return this.getClass(target);
+          case 'name':
+            return this.getName(target);
           case '__file':
             return that.lookup(path);
           case '__path':
@@ -40,6 +49,9 @@ module.exports = class Use {
     });
   }
 
+  /**
+   * @param {*} service
+   */
   serve(service) {
     const that = this;
   }
