@@ -21,17 +21,17 @@ module.exports = class Mod {
     return this.data().name;
   }
 
-  path() {
-    return this.data().path;
+  root() {
+    return this.data().root;
   }
 
-  src() {
-    return this.data().src;
+  path(base = 'src') {
+    return Path.join(this.root(), this.data().paths[base]);
   }
 
   info() {
     if (this._info === null) {
-      this._info = require(this.path() + '/package.json');
+      this._info = require(this.root() + '/package.json');
     }
     return this._info;
   }
@@ -40,8 +40,12 @@ module.exports = class Mod {
     return this.info().version;
   }
 
-  file(file = '') {
-    return Path.join(this.path(), this.src(), file);
+  file(file = '', base = 'src') {
+    return Path.join(this.path(base), file);
+  }
+
+  getUse(file = '') {
+    return this.key() + file.substring(this.path().length, file.length - 3).split(Path.sep).join('/');
   }
 
 }

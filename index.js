@@ -6,8 +6,10 @@ module.exports = {
 
   key: 'core',
   name: 'Core',
-  path: __dirname,
-  src: 'src',
+  root: __dirname,
+  paths: {
+    src: 'src',
+  },
 
   boot: function (settings) {
     new Boot(settings).boot();

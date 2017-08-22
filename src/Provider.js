@@ -2,12 +2,16 @@
 
 module.exports = class Provider {
 
-  subscribe(data) {
-
+  constructor(annotation) {
+    this._annotation = annotation;
   }
 
-  construct() {
-
+  annotation() {
+    return this._annotation;
   }
+
+  subscribe(data) { }
+
+  construct() { }
 
 }

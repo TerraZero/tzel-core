@@ -10,6 +10,7 @@ module.exports = class AnnotationData {
     this._annotations = {};
     this._path = path;
     this._use = null;
+    this._providers = [];
   }
 
   tags() {
@@ -58,8 +59,16 @@ module.exports = class AnnotationData {
     });
   }
 
-  setUse(mod) {
-    this._use = Path.join(mod.key(), this.path().substring(mod.file().length, this.path().length - 3));
+  setUse(use) {
+    this._use = use;
+  }
+
+  addProvider(provider) {
+    this._providers.push(provider.annotation().use());
+  }
+
+  providers() {
+    return this._providers;
   }
 
 }

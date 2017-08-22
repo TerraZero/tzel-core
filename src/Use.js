@@ -30,7 +30,7 @@ module.exports = class Use {
       },
 
       construct: function construct(target, args, newTarget) {
-        return Reflect.construct(this.getClass(target), args, newTarget);
+        return Reflect.construct(this.getClass(target), args, this.getClass(target));
       },
 
       get: function get(target, property, receiver) {

@@ -77,7 +77,7 @@ module.exports = class Boot {
           const parser = new Parser(files[index]);
           const data = parser.getData();
 
-          data.setUse(mod);
+          data.setUse(mod.getUse(data.path()));
           this._datas.push(data);
         }
       }
@@ -88,13 +88,21 @@ module.exports = class Boot {
   subscribing() {
     const Provider = use('core/annotations/Provider');
     const datas = this.getDatas();
-    const subscriber = [];
+    const subscribers = [];
 
     for (const index in datas) {
       if (datas[index].hasTag(Provider.name)) {
-        subscriber.push(datas[index]);
+        const subscriber = use(datas[index].use());
+        subscribers.push(new subscriber(datas[index]));
       }
     }
+
+    for (const index in datas) {
+      for (const i in subscribers) {
+        subscribers[i].subscribe(datas[index]);
+      }
+    }
+    log(datas);
   }
 
   addMod(data) {
