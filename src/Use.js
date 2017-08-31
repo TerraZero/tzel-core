@@ -29,8 +29,20 @@ module.exports = class Use {
         return target.classname;
       },
 
+      getData: function getData(target) {
+        if (target.data === undefined) {
+          target.data = that.data(path);
+        }
+        return target.data;
+      },
+
       construct: function construct(target, args, newTarget) {
-        return Reflect.construct(this.getClass(target), args, this.getClass(target));
+        const data = this.getData(target);
+        const subject = this.getClass(target);
+        const object = Reflect.construct(subject, args, subject);
+
+        that.invoke(subject, object, data);
+        return object;
       },
 
       get: function get(target, property, receiver) {
@@ -43,6 +55,8 @@ module.exports = class Use {
             return that.lookup(path);
           case '__path':
             return path;
+          case '__data':
+            return this.getData(target);
         }
       },
 
@@ -63,6 +77,25 @@ module.exports = class Use {
     const mod = boot.mod(modName);
 
     return mod.file(file);
+  }
+
+  data(key) {
+    const datas = boot.getDatas();
+
+    for (const index in datas) {
+      if (datas[index].use() === key || datas[index].serve() === key) {
+        return datas[index];
+      }
+    }
+    return null;
+  }
+
+  invoke(subject, object, data) {
+    const providers = data.providers();
+
+    for (const index in providers) {
+      boot.provider(providers[index]).invoke(subject, object, data);
+    }
   }
 
 }

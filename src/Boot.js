@@ -16,12 +16,15 @@ module.exports = class Boot {
     this._settings = settings;
     this._mods = null;
     this._datas = null;
+    this._providers = null;
   }
 
   boot() {
     this.globals();
+
     debug = Logger.chanel('debug', 'boot');
     logging = Logger.chanel('log', 'boot');
+
     this.annotations();
     this.subscribing();
   }
@@ -96,24 +99,35 @@ module.exports = class Boot {
     return this._datas;
   }
 
+  providers() {
+    if (this._providers === null) {
+      this._providers = {};
+      const datas = this.getDatas();
+      const Provider = use('core/annotations/Provider');
+
+      for (const index in datas) {
+        if (datas[index].hasTag(Provider.name)) {
+          const subscriber = use(datas[index].use());
+          this._providers[datas[index].use()] = new subscriber(datas[index]);
+        }
+      }
+    }
+    return this._providers;
+  }
+
+  provider(name) {
+    return this.providers()[name];
+  }
+
   subscribing() {
-    const Provider = use('core/annotations/Provider');
+    const providers = this.providers();
     const datas = this.getDatas();
-    const subscribers = [];
 
     for (const index in datas) {
-      if (datas[index].hasTag(Provider.name)) {
-        const subscriber = use(datas[index].use());
-        subscribers.push(new subscriber(datas[index]));
+      for (const i in providers) {
+        providers[i].subscribe(datas[index]);
       }
     }
-
-    for (const index in datas) {
-      for (const i in subscribers) {
-        subscribers[i].subscribe(datas[index]);
-      }
-    }
-    log('hallo');
   }
 
   addMod(data) {

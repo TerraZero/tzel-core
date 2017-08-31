@@ -61,40 +61,44 @@ module.exports = class Logger {
   }
 
   log(...args) {
-    this.print(args.join(' '));
+    this.print(args);
   }
 
   out(text, ...placeholders) {
     for (const index in placeholders) {
       text = text.replace(new RegExp('\\[([^\\d]*?)' + index + '\\]', 'g'), '$1' + placeholders[index] + '$1');
     }
-    this.print(text);
+    this.print([text]);
   }
 
-  print(text) {
+  print(args) {
     const configs = this.config();
 
     for (const index in configs) {
-      let line = this.head(index) + text;
+      let head = this.head(index);
       let type = this.type(index);
+
+      if (head.length) {
+        args.unshift(head);
+      }
 
       switch (type) {
         case 'console':
-          this.outConsole(line, index);
+          this.outConsole(args, index);
           break;
         case 'file':
-          this.outFile(line, index);
+          this.outFile(args, index);
           break;
       }
     }
   }
 
-  outConsole(text, index) {
-    console.log(text);
+  outConsole(args, index) {
+    console.log.apply(console, args);
   }
 
-  outFile(text, index) {
-    fs.appendFileSync(this.config(index).file, text + eol);
+  outFile(args, index) {
+    fs.appendFileSync(this.config(index).file, args.join('') + eol);
   }
 
 };

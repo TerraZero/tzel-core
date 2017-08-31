@@ -5,17 +5,20 @@ const Service = use('core/annotations/Service');
 
 /**
  * @Provider('provider.service')
- * @Service('sdfdsf')
+ * @Service('sdfsdf')
  */
 module.exports = class ServiceProvider extends Provider.class {
 
   subscribe(data) {
     if (data.hasTag(Service.name)) {
+      const annot = data.getAnnotation(Service.name, 0);
+
+      data.setServe(annot.data.value);
       data.addProvider(this);
     }
   }
 
-  construct() {
+  invoke(subject, object, data) {
 
   }
 

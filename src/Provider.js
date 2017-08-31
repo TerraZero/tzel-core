@@ -12,6 +12,6 @@ module.exports = class Provider {
 
   subscribe(data) { }
 
-  construct() { }
+  invoke(subject, object, data) { }
 
 }

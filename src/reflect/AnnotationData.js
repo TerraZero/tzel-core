@@ -10,6 +10,7 @@ module.exports = class AnnotationData {
     this._annotations = {};
     this._path = path;
     this._use = null;
+    this._serve = null;
     this._providers = [];
   }
 
@@ -33,7 +34,7 @@ module.exports = class AnnotationData {
     for (const index in annotations) {
       const annot = annotations[index];
 
-      this.addAnnotation(annot.constructor.name, annot.getData(), type);
+      this.addAnnotation(annot.constructor.name, annot.getData(), type, annot);
       if (annot.constructor.tag && !this.hasTag(annot.constructor.name)) {
         this.addTag(annot.constructor.name);
       }
@@ -48,7 +49,7 @@ module.exports = class AnnotationData {
     this._tags.push(name);
   }
 
-  addAnnotation(name, data, type) {
+  addAnnotation(name, data, type, annot) {
     if (this._annotations[name] === undefined) {
       this._annotations[name] = [];
     }
@@ -56,7 +57,17 @@ module.exports = class AnnotationData {
     this._annotations[name].push({
       data: data,
       type: type,
+      target: annot.target,
     });
+  }
+
+  getAnnotation(name, index = null) {
+    const annotations = this.annotations()[name];
+
+    if (index === null) {
+      return annotations;
+    }
+    return annotations[index];
   }
 
   setUse(use) {
@@ -65,6 +76,14 @@ module.exports = class AnnotationData {
 
   addProvider(provider) {
     this._providers.push(provider.annotation().use());
+  }
+
+  setServe(serve) {
+    this._serve = serve;
+  }
+
+  serve() {
+    return this._serve;
   }
 
   providers() {
