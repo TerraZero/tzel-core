@@ -5,6 +5,10 @@ const Use = require('./Use');
 const Parser = require('./reflect/AnnotationParser');
 const fs = require('graceful-fs');
 const Glob = require('glob');
+const Logger = require('./Logger');
+
+let logging = null;
+let debug = null;
 
 module.exports = class Boot {
 
@@ -16,15 +20,22 @@ module.exports = class Boot {
 
   boot() {
     this.globals();
+    debug = Logger.chanel('debug', 'boot');
+    logging = Logger.chanel('log', 'boot');
     this.annotations();
     this.subscribing();
   }
 
   globals() {
     global.log = this.log.bind(this);
-    global.debug = this.debug.bind(this);
+    Logger.setSettings(this.settings().logger);
+    global.logger = Logger.chanel.bind(Logger);
     global.boot = this;
     new Use();
+  }
+
+  log() {
+    logging.log.apply(logging, arguments);
   }
 
   getMods() {
@@ -36,7 +47,7 @@ module.exports = class Boot {
         try {
           this.addMod(this.load(mods[index]));
         } catch (e) {
-          debug('core', 'Try to load module ["0]', mods[index]);
+          debug.out('Try to load module ["0]', mods[index]);
           throw e;
         }
       }
@@ -102,35 +113,12 @@ module.exports = class Boot {
         subscribers[i].subscribe(datas[index]);
       }
     }
-    log(datas);
+    log('hallo');
   }
 
   addMod(data) {
     const mod = new Mod(data);
     this._mods[mod.key()] = mod;
-  }
-
-  log(...args) {
-    console.log.apply(console, args);
-  }
-
-  debug(mod, notice, ...args) {
-    const channel = this.debugChannel();
-    if (!channel) return;
-    mod = mod.toUpperCase();
-
-    const line = ['DEBUG [' + mod + ']:'];
-
-    for (const index in args) {
-      notice = notice.replace(new RegExp('\\[([^\\d]*?)' + index + '\\]', 'g'), '$1' + args[index] + '$1');
-    }
-    line.push(notice);
-
-    switch (channel) {
-      case 'console':
-        console.log(line.join(' '));
-        break;
-    }
   }
 
   load(name) {
@@ -154,10 +142,6 @@ module.exports = class Boot {
 
   mod(key) {
     return this.getMods()[key];
-  }
-
-  debugChannel() {
-    return this.setting('log.debug', false);
   }
 
 }

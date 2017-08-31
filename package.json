@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/TerraZero/tzel-core#readme",
   "dependencies": {
+    "dateformat": "^2.0.0",
     "glob": "^7.1.2",
     "graceful-fs": "^4.1.11",
     "tzero-annotations": "^1.0.4"
