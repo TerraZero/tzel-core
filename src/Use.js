@@ -1,10 +1,12 @@
 'use strict';
 
 const Path = require('path');
+let debug = null;
 
 module.exports = class Use {
 
   constructor() {
+    debug = logger('debug', 'use');
     global.use = this.use.bind(this);
     global.use.serve = this.serve.bind(this);
     global.use.lookup = this.lookup.bind(this);
@@ -78,6 +80,9 @@ module.exports = class Use {
       getData: function getData(target) {
         if (target.data === undefined) {
           target.data = that.data(service);
+          if (target.data === null) {
+            debug.out('The service ["0] are unknown.', service);
+          }
         }
         return target.data;
       },
