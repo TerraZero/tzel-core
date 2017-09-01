@@ -2,24 +2,35 @@
 
 const Provider = use('core/Provider');
 const Service = use('core/annotations/Service');
+const Inject = use('core/annotations/Inject');
 
 /**
  * @Provider('provider.service')
- * @Service('sdfsdf')
  */
 module.exports = class ServiceProvider extends Provider.class {
 
   subscribe(data) {
-    if (data.hasTag(Service.name)) {
-      const annot = data.getAnnotation(Service.name, 0);
-
-      data.setServe(annot.data.value);
+    if (data.hasAnnotation(Inject.name)) {
       data.addProvider(this);
     }
   }
 
   invoke(subject, object, data) {
+    const annots = data.getAnnotation(Inject.name);
+    const injects = {};
 
+    for (const index in annots) {
+      const annot = annots[index];
+
+      if (injects[annot.target] === undefined) {
+        injects[annot.target] = [];
+      }
+      injects[annot.target].push(use.serve(annot.data.value));
+    }
+
+    for (const name in injects) {
+      object[name].apply(object, injects[name]);
+    }
   }
 
 }

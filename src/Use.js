@@ -63,11 +63,46 @@ module.exports = class Use {
     });
   }
 
-  /**
-   * @param {*} service
-   */
   serve(service) {
     const that = this;
+
+    return new Proxy(function () { }, {
+
+      getUse: function getUse(target) {
+        if (target.use === undefined) {
+          target.use = that.use(this.getData(target).use());
+        }
+        return target.use;
+      },
+
+      getData: function getData(target) {
+        if (target.data === undefined) {
+          target.data = that.data(service);
+        }
+        return target.data;
+      },
+
+      getObject: function getObject(target) {
+        if (target.object === undefined) {
+          target.object = new (this.getUse(target))();
+        }
+        return target.object;
+      },
+
+      get: function get(target, property, receiver) {
+        switch (property) {
+          case 'class':
+            return this.getUse(target).class;
+          case 'use':
+            return this.getUse(target);
+          case 'service':
+            return this.getObject(target);
+          default:
+            return this.getObject(target)[property];
+        }
+      },
+
+    });
   }
 
   lookup(path) {

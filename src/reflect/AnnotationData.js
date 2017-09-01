@@ -38,6 +38,9 @@ module.exports = class AnnotationData {
       if (annot.constructor.tag && !this.hasTag(annot.constructor.name)) {
         this.addTag(annot.constructor.name);
       }
+      if (annot.constructor.serve) {
+        this.setServe(annot.value);
+      }
     }
   }
 
@@ -68,6 +71,10 @@ module.exports = class AnnotationData {
       return annotations;
     }
     return annotations[index];
+  }
+
+  hasAnnotation(name) {
+    return this.getAnnotation(name) !== undefined;
   }
 
   setUse(use) {

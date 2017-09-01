@@ -8,6 +8,8 @@ module.exports = class Provider extends Annotation.class {
 
   static get tag() { return true; }
 
+  static get serve() { return true; }
+
   fields() {
     return {
       value: null,

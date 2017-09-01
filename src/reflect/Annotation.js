@@ -16,6 +16,10 @@ module.exports = class Annotation extends AnnotationBase {
    */
   static get targets() { return [this.DEFINITION, this.CONSTRUCTOR, this.PROPERTY, this.METHOD] }
 
+  static get tag() { return false }
+
+  static get serve() { return false }
+
   /**
    * Constructor to add attributes
    *
