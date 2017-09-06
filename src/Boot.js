@@ -83,7 +83,7 @@ module.exports = class Boot {
       for (const name in this.getMods()) {
         const mod = this.mod(name);
         const files = Glob.sync('**/*.js', {
-          cwd: mod.file(),
+          cwd: mod.path(),
           absolute: true,
         });
 

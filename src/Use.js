@@ -41,7 +41,7 @@ module.exports = class Use {
       construct: function construct(target, args, newTarget) {
         const data = this.getData(target);
         const subject = this.getClass(target);
-        const object = Reflect.construct(subject, args, subject);
+        const object = Reflect.construct(subject, args);
 
         that.invoke(subject, object, data);
         return object;
@@ -66,48 +66,12 @@ module.exports = class Use {
   }
 
   serve(service) {
-    const that = this;
+    const data = this.data(service);
 
-    return new Proxy(function () { }, {
-
-      getUse: function getUse(target) {
-        if (target.use === undefined) {
-          target.use = that.use(this.getData(target).use());
-        }
-        return target.use;
-      },
-
-      getData: function getData(target) {
-        if (target.data === undefined) {
-          target.data = that.data(service);
-          if (target.data === null) {
-            debug.out('The service ["0] are unknown.', service);
-          }
-        }
-        return target.data;
-      },
-
-      getObject: function getObject(target) {
-        if (target.object === undefined) {
-          target.object = new (this.getUse(target))();
-        }
-        return target.object;
-      },
-
-      get: function get(target, property, receiver) {
-        switch (property) {
-          case 'class':
-            return this.getUse(target).class;
-          case 'use':
-            return this.getUse(target);
-          case 'service':
-            return this.getObject(target);
-          default:
-            return this.getObject(target)[property];
-        }
-      },
-
-    });
+    if (data === null) {
+      debug.out('The service ["0] are unknown.', service);
+    }
+    return new (this.use(data.use()))(data);
   }
 
   lookup(path) {

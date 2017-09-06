@@ -25,6 +25,10 @@ module.exports = class Mod {
     return this.data().root;
   }
 
+  hasPath(base = 'src') {
+    return this.data().paths[base] !== undefined;
+  }
+
   path(base = 'src') {
     return Path.join(this.root(), this.data().paths[base]);
   }

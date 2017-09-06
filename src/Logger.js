@@ -41,7 +41,7 @@ module.exports = class Logger {
     let head = this.config(index).head;
 
     if (head === undefined) return '';
-    head = head.replace(/\$mod/g, this.mod());
+    head = head.replace(/\$mod/g, (this.mod() === null ? 'root' : this.mod()));
     head = head.replace(/\$time/g, dateformat(new Date(), this.date(index)));
     return head;
   }
