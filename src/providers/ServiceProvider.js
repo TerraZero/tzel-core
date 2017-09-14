@@ -33,4 +33,8 @@ module.exports = class ServiceProvider extends Provider.class {
     }
   }
 
+  asdfghjk() {
+    log('cool');
+  }
+
 }

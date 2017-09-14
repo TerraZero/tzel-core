@@ -19,7 +19,7 @@ module.exports = class Use {
 
       getClass: function getClass(target) {
         if (target.class === undefined) {
-          target.class = require(that.lookup(path));
+          target.class = require(this.getData(target).path());
         }
         return target.class;
       },
@@ -36,6 +36,20 @@ module.exports = class Use {
           target.data = that.data(path);
         }
         return target.data;
+      },
+
+      isService: function isService(target) {
+        if (target.isService === undefined) {
+          target.isService = this.getData(target) && this.getData(target).serve() === path;
+        }
+        return target.isService;
+      },
+
+      getSubject: function getSubject(target) {
+        if (target.subject === undefined) {
+          target.subject = Reflect.construct(this.getClass(target));
+        }
+        return target.subject;
       },
 
       construct: function construct(target, args, newTarget) {
@@ -59,6 +73,9 @@ module.exports = class Use {
             return path;
           case '__data':
             return this.getData(target);
+        }
+        if (this.isService(target)) {
+          return this.getSubject(target)[property];
         }
       },
 

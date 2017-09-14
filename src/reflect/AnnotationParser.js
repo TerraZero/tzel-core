@@ -41,6 +41,7 @@ module.exports = class AnnotationParser {
     if (this._data === null) {
       this._data = new AnnotationData(this.path());
 
+      log(this._reader.definitionAnnotations);
       if (this._reader.definitionAnnotations) {
         this._data.addData(this._reader.definitionAnnotations, Annotation.DEFINITION);
       }

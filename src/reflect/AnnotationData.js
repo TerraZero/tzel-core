@@ -35,6 +35,7 @@ module.exports = class AnnotationData {
       const annot = annotations[index];
 
       this.addAnnotation(annot.constructor.name, annot.getData(), type, annot);
+
       if (annot.constructor.tag && !this.hasTag(annot.constructor.name)) {
         this.addTag(annot.constructor.name);
       }
