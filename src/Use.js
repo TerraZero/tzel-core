@@ -79,15 +79,12 @@ module.exports = class Use {
           case '__data':
             return this.getData(target);
           default:
-            if (property.indexOf('_') === 0) {
+            if (typeof property === 'string' && property.indexOf('_') === 0) {
               throw new TypeError('Property "' + property + '" of "' + this.getName(target) + '" is private!');
             }
             const subject = this.getSubject(target);
             let value = Reflect.get(subject, property);
 
-            if (value === undefined) {
-              throw new TypeError('Property "' + property + '" of "' + this.getName(target) + '" is undefined!');
-            }
             if (typeof value === 'function') {
               value = value.bind(subject);
             }

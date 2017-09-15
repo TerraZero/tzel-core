@@ -1,7 +1,6 @@
 'use strict';
 
 const Provider = use('core/Provider');
-const Service = use('core/annotations/Service');
 const Inject = use('core/annotations/Inject');
 
 /**
@@ -25,7 +24,7 @@ module.exports = class ServiceProvider extends Provider.class {
       if (injects[annot.target] === undefined) {
         injects[annot.target] = [];
       }
-      injects[annot.target].push(use.serve(annot.data.value));
+      injects[annot.target].push(use(annot.data.value));
     }
 
     for (const name in injects) {
