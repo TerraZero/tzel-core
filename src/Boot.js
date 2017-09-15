@@ -75,6 +75,7 @@ module.exports = class Boot {
         Parser.register(abs);
       }
     }
+    this._datas = null;
   }
 
   getDatas() {

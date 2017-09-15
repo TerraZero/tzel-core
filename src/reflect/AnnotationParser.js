@@ -5,23 +5,23 @@ const Reader = AnnotationBase.Reader;
 const Annotation = require('./Annotation');
 const AnnotationData = require('./AnnotationData');
 
-const registry = new AnnotationBase.Registry();
+const _registry = new AnnotationBase.Registry();
 
 module.exports = class AnnotationParser {
 
   static register(file) {
-    registry.registerAnnotation(file);
+    _registry.registerAnnotation(file);
   }
 
   static registry() {
-    return registry;
+    return _registry;
   }
 
   /**
    * @param {string} path
    */
   constructor(path) {
-    this._reader = new Reader(registry);
+    this._reader = new Reader(_registry);
     this._path = path;
     this._data = null;
 
@@ -41,7 +41,6 @@ module.exports = class AnnotationParser {
     if (this._data === null) {
       this._data = new AnnotationData(this.path());
 
-      log(this._reader.definitionAnnotations);
       if (this._reader.definitionAnnotations) {
         this._data.addData(this._reader.definitionAnnotations, Annotation.DEFINITION);
       }

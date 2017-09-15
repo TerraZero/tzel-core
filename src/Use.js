@@ -8,14 +8,15 @@ module.exports = class Use {
   constructor() {
     debug = logger('debug', 'use');
     global.use = this.use.bind(this);
-    global.use.serve = this.serve.bind(this);
     global.use.lookup = this.lookup.bind(this);
+    this._proxies = {};
   }
 
   use(path) {
+    if (this._proxies[path]) return this._proxies[path];
     const that = this;
 
-    return new Proxy(function () { }, {
+    return this._proxies[path] = new Proxy(function () { }, {
 
       getClass: function getClass(target) {
         if (target.class === undefined) {
@@ -26,7 +27,7 @@ module.exports = class Use {
 
       getName: function getName(target) {
         if (target.classname === undefined) {
-          target.classname = path.split('/').pop();
+          target.classname = this.getData(target).use().split('/').pop();
         }
         return target.classname;
       },
@@ -46,10 +47,14 @@ module.exports = class Use {
       },
 
       getSubject: function getSubject(target) {
-        if (target.subject === undefined) {
-          target.subject = Reflect.construct(this.getClass(target));
+        if (this.isService(target)) {
+          if (target.subject === undefined) {
+            target.subject = Reflect.construct(this.getClass(target), []);
+          }
+          return target.subject;
+        } else {
+          return this.getClass(target);
         }
-        return target.subject;
       },
 
       construct: function construct(target, args, newTarget) {
@@ -73,22 +78,34 @@ module.exports = class Use {
             return path;
           case '__data':
             return this.getData(target);
-        }
-        if (this.isService(target)) {
-          return this.getSubject(target)[property];
+          default:
+            if (property.indexOf('_') === 0) {
+              throw new TypeError('Property "' + property + '" of "' + this.getName(target) + '" is private!');
+            }
+            const subject = this.getSubject(target);
+            let value = Reflect.get(subject, property);
+
+            if (value === undefined) {
+              throw new TypeError('Property "' + property + '" of "' + this.getName(target) + '" is undefined!');
+            }
+            if (typeof value === 'function') {
+              value = value.bind(subject);
+            }
+            return value;
         }
       },
 
+      set: function (target, property, value, receiver) {
+        if (property.indexOf('_') === 0) {
+          throw new TypeError('Property "' + property + '" of "' + this.getName(target) + '" is private!');
+        }
+        if (Reflect.get(this.getSubject(target), property) === undefined) {
+          throw new TypeError('Property "' + property + '" of "' + this.getName(target) + '" is undefined!');
+        }
+        return Reflect.set(this.getSubject(target), property, value);
+      },
+
     });
-  }
-
-  serve(service) {
-    const data = this.data(service);
-
-    if (data === null) {
-      debug.out('The service ["0] are unknown.', service);
-    }
-    return new (this.use(data.use()))(data);
   }
 
   lookup(path) {
