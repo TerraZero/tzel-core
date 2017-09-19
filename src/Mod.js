@@ -30,6 +30,9 @@ module.exports = class Mod {
   }
 
   path(base = 'src') {
+    if (this.data().paths[base] === undefined) {
+      return null;
+    }
     return Path.join(this.root(), this.data().paths[base]);
   }
 

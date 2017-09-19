@@ -1,0 +1,9 @@
+{
+  "modules": {
+    "enabled": [
+      "tzel-core",
+      "tzel-gui",
+      "tzel-cli"
+    ]
+  }
+}

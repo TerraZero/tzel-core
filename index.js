@@ -9,6 +9,7 @@ module.exports = {
   root: __dirname,
   paths: {
     src: 'src',
+    configs: 'configs',
   },
 
   boot: function (settings) {
