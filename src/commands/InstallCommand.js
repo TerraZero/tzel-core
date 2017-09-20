@@ -11,7 +11,7 @@ const glob = require('glob');
 module.exports = class InstallCommand extends Command.class {
 
   command() {
-    return 'install [reinstall]';
+    return 'install';
   }
 
   description() {
@@ -21,13 +21,13 @@ module.exports = class InstallCommand extends Command.class {
   execute(argv) {
     this._root = boot.setting('root');
     const pRoot = path.join(this._root, 'install');
-    const pSettings = path.join(pRoot, 'configs.json');
 
     this.out();
     this.out('Start Install');
     this.out();
 
     this.mkdir(pRoot);
+    this.mkdir(path.join(pRoot, 'configs'));
 
     const mods = boot.getMods();
     const configs = {};
@@ -51,7 +51,8 @@ module.exports = class InstallCommand extends Command.class {
       }
     }
 
-    this.json(pSettings, configs);
+    this.json(path.join(pRoot, 'configs', 'default.json'), configs, true);
+    this.json(path.join(pRoot, 'configs', 'configs.json'), configs);
   }
 
   _subpath(path, rootPath = null) {
@@ -66,8 +67,8 @@ module.exports = class InstallCommand extends Command.class {
     }
   }
 
-  json(path, value) {
-    if (!fs.existsSync(path)) {
+  json(path, value, always = false) {
+    if (!fs.existsSync(path) || always) {
       fs.writeFileSync(path, JSON.stringify(value, null, 2));
       this.out('[FS] write json ' + this._subpath(path));
     }

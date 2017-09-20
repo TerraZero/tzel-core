@@ -20,10 +20,18 @@ module.exports = class ConfigSetCommand extends Command.class {
   }
 
   build(yargv) {
-    yargv.choices('mode', ['set', 'add', 'del']);
+    yargv
+      .choices('mode', ['set', 'add', 'del'])
+      .option('json', {
+        describe: 'interpret value as json',
+        type: 'boolean',
+      });
   }
 
   execute(argv) {
+    if (argv.json && argv.value) {
+      argv.value = JSON.parse(argv.value);
+    }
     log(argv);
   }
 
