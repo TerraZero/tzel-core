@@ -49,7 +49,10 @@ module.exports = class Use {
       getSubject: function getSubject(target) {
         if (this.isService(target)) {
           if (target.subject === undefined) {
-            target.subject = Reflect.construct(this.getClass(target), []);
+            const subject = this.getClass(target);
+
+            target.subject = Reflect.construct(subject, []);
+            that.invoke(subject, target.subject, this.getData(target));
           }
           return target.subject;
         } else {

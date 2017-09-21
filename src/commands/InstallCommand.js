@@ -22,9 +22,11 @@ module.exports = class InstallCommand extends Command.class {
     this._root = boot.setting('root');
     const pRoot = path.join(this._root, 'install');
 
-    this.out();
-    this.out('Start Install');
-    this.out();
+    this
+      .io()
+      .newline()
+      .out('Start Install')
+      .newline();
 
     this.mkdir(pRoot);
     this.mkdir(path.join(pRoot, 'configs'));
@@ -42,7 +44,7 @@ module.exports = class InstallCommand extends Command.class {
       });
 
       for (const index in pConfigFiles) {
-        this.out('[NODE] load config from mod ' + mods[name].name() + ' ' + this._subpath(pConfigFiles[index], mods[name].path('configs')));
+        this.io().out('[NODE] load config from mod ' + mods[name].name() + ' ' + this._subpath(pConfigFiles[index], mods[name].path('configs')));
         const config = require(pConfigFiles[index]);
 
         for (const value in config) {
@@ -63,20 +65,20 @@ module.exports = class InstallCommand extends Command.class {
   mkdir(path) {
     if (!fs.existsSync(path)) {
       fs.mkdirSync(path);
-      this.out('[FS] mkdir ' + this._subpath(path));
+      this.io().out('[FS] mkdir ' + this._subpath(path));
     }
   }
 
   json(path, value, always = false) {
     if (!fs.existsSync(path) || always) {
       fs.writeFileSync(path, JSON.stringify(value, null, 2));
-      this.out('[FS] write json ' + this._subpath(path));
+      this.io().out('[FS] write json ' + this._subpath(path));
     }
   }
 
   copy(from, to) {
     fs.createReadStream(from).pipe(fs.createWriteStream(to));
-    this.out('[FS] copy from ' + this._subpath(from) + ' to ' + this._subpath(to));
+    this.io().out('[FS] copy from ' + this._subpath(from) + ' to ' + this._subpath(to));
   }
 
 }
