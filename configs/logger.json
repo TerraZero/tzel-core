@@ -1,25 +1,23 @@
 {
-  "logger": {
-    "log": [
-      {
-        "type": "console"
-      }
-    ],
-    "warn": [
-      {
-        "type": "console"
-      }
-    ],
-    "error": [
-      {
-        "type": "console"
-      }
-    ],
-    "debug": [
-      {
-        "type": "console",
-        "head": "$time [$mod]: "
-      }
-    ]
-  }
+  "log": [
+    {
+      "type": "console"
+    }
+  ],
+  "warn": [
+    {
+      "type": "console"
+    }
+  ],
+  "error": [
+    {
+      "type": "console"
+    }
+  ],
+  "debug": [
+    {
+      "type": "console",
+      "head": "$time [$mod]: "
+    }
+  ]
 }

@@ -1,8 +1,6 @@
 {
-  "modules": {
-    "enabled": [
-      "tzel-core",
-      "tzel-cli"
-    ]
-  }
+  "enabled": [
+    "tzel-core",
+    "tzel-cli"
+  ]
 }

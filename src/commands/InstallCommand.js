@@ -1,7 +1,6 @@
 'use strict';
 
 const Command = use('cli/Command');
-const fs = require('graceful-fs');
 const path = require('path');
 const glob = require('glob');
 
@@ -20,65 +19,39 @@ module.exports = class InstallCommand extends Command.class {
 
   execute(argv) {
     this._root = boot.setting('root');
-    const pRoot = path.join(this._root, 'install');
+    const paths = boot.setting('path');
+    const pConfigs = boot.setting('path.configs');
 
-    this
-      .io()
-      .newline()
-      .out('Start Install')
-      .newline();
+    this.io().h1('Start Install');
 
-    this.mkdir(pRoot);
-    this.mkdir(path.join(pRoot, 'configs'));
+    this.io().h2('Create paths');
+    for (const index in paths) {
+      this.io().fsMkDirs(paths[index])
+    }
+
+    this.io().nl().h2('Build Configs');
 
     const mods = boot.getMods();
     const configs = {};
 
     for (const name in mods) {
-      const pConfigs = mods[name].path('configs');
+      const mConfigs = mods[name].path('configs');
 
-      if (pConfigs === null) continue;
+      if (mConfigs === null) continue;
       const pConfigFiles = glob.sync('**/*.json', {
-        cwd: pConfigs,
+        cwd: mConfigs,
         absolute: true,
       });
 
       for (const index in pConfigFiles) {
-        this.io().out('[NODE] load config from mod ' + mods[name].name() + ' ' + this._subpath(pConfigFiles[index], mods[name].path('configs')));
+        this.io().out('[NODE] load config from mod ' + mods[name].name() + ' ' + this.io().subpath(pConfigFiles[index], mods[name].path('configs')));
         const config = require(pConfigFiles[index]);
-
-        for (const value in config) {
-          configs[value] = config[value];
-        }
+        configs[path.parse(pConfigFiles[index]).name] = config;
       }
     }
 
-    this.json(path.join(pRoot, 'configs', 'default.json'), configs, true);
-    this.json(path.join(pRoot, 'configs', 'configs.json'), configs);
-  }
-
-  _subpath(path, rootPath = null) {
-    rootPath = rootPath || this._root;
-    return '"..' + path.substring(rootPath.length) + '"';
-  }
-
-  mkdir(path) {
-    if (!fs.existsSync(path)) {
-      fs.mkdirSync(path);
-      this.io().out('[FS] mkdir ' + this._subpath(path));
-    }
-  }
-
-  json(path, value, always = false) {
-    if (!fs.existsSync(path) || always) {
-      fs.writeFileSync(path, JSON.stringify(value, null, 2));
-      this.io().out('[FS] write json ' + this._subpath(path));
-    }
-  }
-
-  copy(from, to) {
-    fs.createReadStream(from).pipe(fs.createWriteStream(to));
-    this.io().out('[FS] copy from ' + this._subpath(from) + ' to ' + this._subpath(to));
+    this.io().fsJson(path.join(pConfigs, 'defaults.json'), configs, true);
+    this.io().fsJson(path.join(pConfigs, 'configs.json'), configs);
   }
 
 }

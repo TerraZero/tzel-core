@@ -92,7 +92,7 @@ module.exports = class ConfigSetCommand extends Command.class {
       this.io().out(settings).newline();
     }
     if (!argv.test) {
-      this.io().fsJson([boot.setting('root'), 'install/configs/configs.json'], settings, true);
+      this.io().fsJson([boot.setting('path.configs'), 'configs.json'], settings, true);
     }
   }
 
