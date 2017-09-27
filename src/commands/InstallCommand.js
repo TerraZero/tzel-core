@@ -40,14 +40,12 @@ module.exports = class InstallCommand extends Command.class {
 
       if (mConfigs === null) continue;
       mConfigs = Path.create(mConfigs);
-      const pConfigFiles = mConfigs.glob('**/*.json', {
-        absolute: true,
-      });
+      const pConfigFiles = mConfigs.glob('**/*.json');
 
       for (const index in pConfigFiles) {
-        this.io().out('[NODE] load config from mod ' + mods[name].name() + ' ' + Path.create(pConfigFiles[index]).norm());
-        const config = require(pConfigFiles[index]);
-        configs[path.parse(pConfigFiles[index]).name] = config;
+        this.io().out('[NODE] load config from ' + pConfigFiles[index].cli());
+        const config = require(pConfigFiles[index].norm());
+        configs[path.parse(pConfigFiles[index].norm()).name] = config;
       }
     }
 

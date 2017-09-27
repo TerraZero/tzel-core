@@ -5,143 +5,121 @@ const glob = require('glob');
 
 module.exports = class Path {
 
-  static create(path, base = 'root', type = 'src') {
-    if (path instanceof Path) return path;
-
-    path = Path._pre(path);
-    if (nPath.isAbsolute(path)) {
-      const lookup = Path._lookup(path);
-      return new Path(lookup.path, lookup.base, lookup.type);
-    }
-
-    return new Path(path, base, type);
-  }
-
-  static extend(path, joins = []) {
-    joins.unshift(path.path());
-    return new Path(Path.join.apply(Path, joins), path.base(), path.type());
-  }
-
-  static root() {
-    return this._pre(boot.setting('root'));
-  }
-
-  static join() {
-    return nPath.join.apply(nPath, arguments);
-  }
-
-  static _pre(path) {
+  static forIn(path) {
+    if (path === null) return '';
     if (Array.isArray(path)) {
       path = nPath.join.apply(nPath, path);
     }
-    return path.replace(/\\/g, '/');
+    return nPath.normalize(path);
   }
 
-  static _lookup(path) {
-    if (this._modPaths === undefined) {
-      this._modPaths = {};
+  static forOut(path) {
+    return nPath.normalize(path);
+  }
+
+  static internals() {
+    if (this._internals === undefined) {
+      this._internals = {};
       const mods = boot.getMods();
 
       for (const mod in mods) {
-        this._modPaths[mod] = {};
         const paths = mods[mod].data().paths;
 
+        this._internals[mod + ':'] = Path.forIn(mods[mod].root());
         for (const type in paths) {
-          this._modPaths[mod][type] = this._pre(mods[mod].path(type));
+          this._internals[mod + ':' + type] = Path.forIn(mods[mod].path(type));
         }
       }
+      this._internals['root:'] = Path.forIn(boot.setting('root'));
+      this._internals['external:'] = '';
     }
-
-    let p = null;
-    let m = null;
-    let t = null;
-    for (const mod in this._modPaths) {
-      for (const type in this._modPaths[mod]) {
-        if (path.startsWith(this._modPaths[mod][type])) {
-          if (p === null || p.length < this._modPaths[mod][type].length) {
-            p = this._modPaths[mod][type];
-            m = mod;
-            t = type;
-          }
-        }
-      }
-    }
-
-    if (p === null && path.startsWith(this.root())) {
-      p = this.root();
-      m = 'root';
-      t = null;
-    }
-
-    if (p !== null) {
-      p = path.substring(p.length);
-    } else {
-      p = path;
-    }
-
-    return {
-      path: p,
-      base: m,
-      type: t,
-    };
+    return this._internals;
   }
 
-  constructor(path, base = 'root', type = 'src') {
-    this._path = path;
-    this._base = base;
-    this._type = type;
+  static create(source, schema = null, lookup = true) {
+    if (source instanceof Path) return source;
+    let intern = Path.forIn(source);
+    let extern = null;
+
+    if (lookup) {
+      if (schema === null) {
+        extern = Path.forOut(intern);
+
+        if (!nPath.isAbsolute(extern)) {
+          intern = Path.forIn(nPath.join(this.internals()['root:'], intern));
+          extern = Path.forOut(intern);
+        }
+        schema = this.lookup(intern).schema;
+      } else {
+        intern = Path.forIn(nPath.join(this.internals()[schema], intern));
+        extern = Path.forOut(intern);
+      }
+      intern = Path.convert(intern, schema);
+      return new Path(source, intern, extern, schema, lookup);
+    } else if (schema === null) {
+      extern = Path.forOut(intern);
+    } else {
+      intern = Path.forIn(nPath.join(this.internals()[schema], intern));
+      extern = Path.forOut(intern);
+    }
+    intern = Path.convert(intern, schema);
+    return new Path(source, intern, extern, schema, lookup);
+  }
+
+  static lookup(path) {
+    const internals = this.internals();
+
+    const lookuped = {
+      schema: null,
+      root: null,
+    };
+    for (const schema in internals) {
+      if (path.startsWith(internals[schema]) && (lookuped.schema === null || lookuped.root.length < internals[schema].length)) {
+        lookuped.schema = schema;
+        lookuped.root = internals[schema];
+      }
+    }
+
+    return lookuped;
+  }
+
+  static convert(path, schema) {
+    if (schema === null) return path;
+    return path.substring(this.internals()[schema].length);
+  }
+
+  constructor(source, intern, extern, schema, lookup) {
+    this._source = source;
+    this._intern = intern;
+    this._extern = extern;
+    this._schema = schema || 'external:';
+    this._lookup = lookup;
 
     this._parts = null;
-    this._subpath = null;
-    this._norm = null;
+  }
+
+  id() {
+    return this.schema() + '=' + this.path();
+  }
+
+  source() {
+    return this._source;
+  }
+
+  schema() {
+    return this._schema;
   }
 
   path() {
-    return this._path;
-  }
-
-  base() {
-    return this._base;
-  }
-
-  type() {
-    return this._type;
-  }
-
-  isInternal() {
-    return !this.isExternal();
-  }
-
-  isExternal() {
-    return this.base() === null;
+    return this._intern;
   }
 
   norm() {
-    if (this._norm === null) {
-      if (this.isInternal()) {
-        this._norm = nPath.normalize(nPath.join(this.root(), this.path()));
-      } else {
-        this._norm = nPath.normalize(this.path());
-      }
-    }
-    return this._norm;
+    return this._extern;
   }
 
-  root() {
-    if (this.base() === 'root') {
-      return Path.root();
-    } else if (this.base() === null) {
-      return null;
-    } else {
-      return boot.mod(this.base()).path(this.type());
-    }
-  }
-
-  subpath() {
-    if (this._subpath === null) {
-      this._subpath = this.norm().substring(this.root().length);
-    }
-    return this._subpath;
+  cli() {
+    return '"' + this.id() + '"';
   }
 
   parts() {
@@ -151,21 +129,63 @@ module.exports = class Path {
     return this._parts;
   }
 
-  glob(pattern, options) {
+  root() {
+    return Path.create(null, this.schema(), false);
+  }
+
+  isInternal() {
+    return this.schema() !== null;
+  }
+
+  isExternal() {
+    return this.schema() === null;
+  }
+
+  mod() {
+    if (this.schema() === null) return null;
+    return this.schema().split(':')[0];
+  }
+
+  type() {
+    if (this.schema() === null) return null;
+    return this.schema().split(':')[1];
+  }
+
+  glob(pattern, options = {}) {
     options.cwd = this.norm();
-    return glob.sync(pattern, options);
+    options.absolute = true;
+    const paths = glob.sync(pattern, options);
+
+    for (const index in paths) {
+      paths[index] = Path.create(paths[index]);
+    }
+    return paths;
   }
 
   join(...paths) {
-    return Path.extend(this, paths);
+    paths.unshift(this.norm());
+    return Path.create(paths);
   }
 
   inspect() {
-    return 'Path[' + this.norm() + ']';
+    return 'Path[' + this.id() + ']';
   }
 
   toString() {
     return this.norm();
   }
 
+}
+
+if (nPath.sep != '/') {
+  module.exports._forInRegExp = new RegExp('\\' + nPath.sep, 'g');
+  module.exports.forIn = function forIn(path) {
+    if (path === null) return '';
+    if (Array.isArray(path)) {
+      path = nPath.join.apply(nPath, path);
+    }
+    path = nPath.normalize(path);
+    path = path.replace(this._forInRegExp, '/');
+    return path;
+  };
 }
