@@ -20,6 +20,7 @@
     "dateformat": "^2.0.0",
     "glob": "^7.1.2",
     "graceful-fs": "^4.1.11",
+    "listeners": "^1.0.4",
     "tzero-annotations": "^1.0.4"
   }
 }

@@ -27,6 +27,7 @@ module.exports = class Boot {
 
     this.annotations();
     this.subscribing();
+    this.listeners();
   }
 
   globals() {
@@ -157,6 +158,13 @@ module.exports = class Boot {
 
   mod(key) {
     return this.getMods()[key];
+  }
+
+  listeners() {
+    const em = use('manager.event');
+
+    em.register();
+    em.fire('core', 'boot');
   }
 
 }
