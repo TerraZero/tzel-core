@@ -5,6 +5,14 @@ const glob = require('glob');
 
 module.exports = class Path {
 
+  static normalize(...args) {
+    return nPath.normalize.apply(nPath, args);
+  }
+
+  static get sep() {
+    return nPath.sep;
+  }
+
   static forIn(path) {
     if (path === null) return '';
     if (Array.isArray(path)) {
