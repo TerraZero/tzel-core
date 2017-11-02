@@ -42,6 +42,7 @@ module.exports = class EventManager {
   fire(mod, event, data = {}) {
     event = mod + '.' + event;
     const parts = event.split('.');
+    const e = new Event(event, mod, data);
 
     const current = [];
     for (let i = parts.length - 1; i >= 0; i--) {
@@ -49,9 +50,11 @@ module.exports = class EventManager {
       const key = current.reverse().join('.');
 
       if (this.hasHandler(key)) {
-        this.getHandler(key).fire(new Event(key, event, mod, data));
+        e.setEvent(key);
+        this.getHandler(key).fire(e);
       }
     }
+    return e;
   }
 
 }

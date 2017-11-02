@@ -2,11 +2,16 @@
 
 module.exports = class Event {
 
-  constructor(event, original, mod, data = {}) {
-    this._event = event;
+  constructor(original, mod, data = {}) {
+    this._event = null;
     this._original = original;
     this._mod = mod;
     this._data = data;
+  }
+
+  setEvent(event) {
+    this._event = event;
+    return this;
   }
 
   event() {
@@ -28,6 +33,11 @@ module.exports = class Event {
   get(name, fallback = null) {
     if (this._data[name] === undefined) return fallback;
     return this._data[name];
+  }
+
+  set(name, object) {
+    this._data[name] = object;
+    return this;
   }
 
 }
