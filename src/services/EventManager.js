@@ -45,9 +45,9 @@ module.exports = class EventManager {
     const e = new Event(event, mod, data);
 
     const current = [];
-    for (let i = parts.length - 1; i >= 0; i--) {
-      current.push(parts[i]);
-      const key = current.reverse().join('.');
+    for (const index in parts) {
+      current.push(parts[index]);
+      const key = current.join('.');
 
       if (this.hasHandler(key)) {
         e.setEvent(key);
