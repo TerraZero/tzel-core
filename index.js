@@ -13,7 +13,10 @@ module.exports = {
   },
 
   boot: function (settings) {
-    new Boot(settings).boot();
+    const boot = new Boot(settings);
+
+    boot.boot();
+    return boot;
   },
 
 };
