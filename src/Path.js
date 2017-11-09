@@ -141,6 +141,10 @@ module.exports = class Path {
     return Path.create(null, this.schema(), false);
   }
 
+  filename() {
+    return nPath.basename(this.norm());
+  }
+
   isInternal() {
     return this.schema() !== null;
   }
