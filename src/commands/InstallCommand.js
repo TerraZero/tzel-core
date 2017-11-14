@@ -1,9 +1,10 @@
 'use strict';
 
-const Command = use('cli/Command');
-const Path = use('core/Path');
 const path = require('path');
 const glob = require('glob');
+
+const Command = use('cli/Command');
+const Path = use('core/Path');
 
 /**
  * @Command
