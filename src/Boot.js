@@ -165,6 +165,9 @@ module.exports = class Boot {
 
     em.register();
     em.fire('core', 'boot');
+    if (typeof window !== 'undefined') {
+      em.fire('core', 'boot.window');
+    }
   }
 
 }
