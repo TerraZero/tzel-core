@@ -1,6 +1,9 @@
 'use strict';
 
 const Path = require('path');
+
+const Manifest = require('./reflect/Manifest');
+
 let debug = null;
 
 module.exports = class Use {
@@ -8,7 +11,6 @@ module.exports = class Use {
   constructor() {
     debug = logger('debug', 'use');
     global.use = this.use.bind(this);
-    global.use.lookup = this.lookup.bind(this);
     this._proxies = {};
   }
 
@@ -20,23 +22,20 @@ module.exports = class Use {
 
       getClass: function getClass(target) {
         if (target.class === undefined) {
-          target.class = require(this.getData(target).path());
+          target.class = require(this.getManifest(target).file());
         }
         return target.class;
       },
 
       getName: function getName(target) {
-        if (target.classname === undefined) {
-          target.classname = this.getData(target).use().split('/').pop();
-        }
-        return target.classname;
+        return this.getManifest(target).class();
       },
 
-      getData: function getData(target) {
-        if (target.data === undefined) {
-          target.data = that.data(path);
+      getManifest: function getManifest(target) {
+        if (target.manifest === undefined) {
+          target.manifest = Manifest.get(path);
         }
-        return target.data;
+        return target.manifest;
       },
 
       isService: function isService(target) {
@@ -75,12 +74,9 @@ module.exports = class Use {
             return this.getClass(target);
           case 'name':
             return this.getName(target);
-          case '__file':
-            return that.lookup(path);
-          case '__path':
-            return path;
-          case '__data':
-            return this.getData(target);
+          case '__manifest':
+            return this.getManifest(target);
+
           default:
             if (typeof property === 'string' && property.indexOf('_') === 0) {
               throw new TypeError('Property "' + property + '" of "' + this.getName(target) + '" is private!');
@@ -106,26 +102,6 @@ module.exports = class Use {
       },
 
     });
-  }
-
-  lookup(path) {
-    const parts = path.split('/');
-    const modName = parts.shift();
-    const file = parts.join('/');
-    const mod = boot.mod(modName);
-
-    return mod.file(file);
-  }
-
-  data(key) {
-    const datas = boot.getDatas();
-
-    for (const index in datas) {
-      if (datas[index].use() === key || datas[index].serve() === key) {
-        return datas[index];
-      }
-    }
-    return null;
   }
 
   invoke(subject, object, data) {

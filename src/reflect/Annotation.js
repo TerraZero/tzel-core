@@ -53,12 +53,23 @@ module.exports = class Annotation extends AnnotationBase {
     };
   }
 
+  props() {
+    return {
+      serve: this.constructor.serve,
+      tag: this.constructor.tag,
+      targets: this.constructor.targets,
+    }
+  }
+
   getData() {
-    const data = {};
+    const data = {
+      fields: {},
+      props: this.props(),
+    };
     const fields = this.fields();
 
     for (const index in fields) {
-      data[index] = this[index];
+      data.fields[index] = this[index];
     }
     return data;
   }

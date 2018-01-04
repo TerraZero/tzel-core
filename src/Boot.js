@@ -2,6 +2,7 @@
 
 const Mod = require('./Mod');
 const Use = require('./Use');
+const Manifest = require('./reflect/Manifest');
 const Parser = require('./reflect/AnnotationParser');
 const fs = require('graceful-fs');
 const Glob = require('glob');
@@ -25,7 +26,9 @@ module.exports = class Boot {
     debug = Logger.chanel('debug', 'boot');
     logging = Logger.chanel('log', 'boot');
 
+    this.scanning();
     this.annotations();
+    this.parsing();
     this.subscribing();
     this.listeners();
   }
@@ -59,6 +62,12 @@ module.exports = class Boot {
     return this._mods;
   }
 
+  scanning() {
+    for (const name in this.getMods()) {
+      Manifest.scan(this.mod(name));
+    }
+  }
+
   annotations() {
     for (const name in this.getMods()) {
       const mod = this.mod(name);
@@ -79,10 +88,16 @@ module.exports = class Boot {
     this._datas = null;
   }
 
+  parsing() {
+    Manifest.parsing();
+    throw 'parsing';
+  }
+
   getDatas() {
     if (this._datas === null) {
       this._datas = [];
       for (const name in this.getMods()) {
+        Manifest.scan(this.mod(name));
         const mod = this.mod(name);
         const files = Glob.sync('**/*.js', {
           cwd: mod.path(),
@@ -98,6 +113,7 @@ module.exports = class Boot {
         }
       }
     }
+    throw 'hallo';
     return this._datas;
   }
 
