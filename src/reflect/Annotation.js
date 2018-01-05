@@ -16,7 +16,7 @@ module.exports = class Annotation extends AnnotationBase {
    */
   static get targets() { return [this.DEFINITION, this.CONSTRUCTOR, this.PROPERTY, this.METHOD] }
 
-  static get tag() { return false }
+  static get extendable() { return true }
 
   static get serve() { return false }
 
@@ -56,8 +56,14 @@ module.exports = class Annotation extends AnnotationBase {
   props() {
     return {
       serve: this.constructor.serve,
-      tag: this.constructor.tag,
+      extendable: this.constructor.extendable,
       targets: this.constructor.targets,
+    }
+  }
+
+  meta() {
+    return {
+      target: this.target,
     }
   }
 
@@ -65,6 +71,7 @@ module.exports = class Annotation extends AnnotationBase {
     const data = {
       fields: {},
       props: this.props(),
+      meta: this.meta(),
     };
     const fields = this.fields();
 
