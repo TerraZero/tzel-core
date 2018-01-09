@@ -38,20 +38,13 @@ module.exports = class Use {
         return target.manifest;
       },
 
-      isService: function isService(target) {
-        if (target.isService === undefined) {
-          target.isService = this.getData(target) && this.getData(target).serve() === path;
-        }
-        return target.isService;
-      },
-
       getSubject: function getSubject(target) {
-        if (this.isService(target)) {
+        if (this.getManifest(target).isAlias()) {
           if (target.subject === undefined) {
             const subject = this.getClass(target);
 
             target.subject = Reflect.construct(subject, []);
-            that.invoke(subject, target.subject, this.getData(target));
+            that.invoke(subject, target.subject, this.getManifest(target), 'construct');
           }
           return target.subject;
         } else {
@@ -60,11 +53,9 @@ module.exports = class Use {
       },
 
       construct: function construct(target, args, newTarget) {
-        const data = this.getData(target);
         const subject = this.getClass(target);
         const object = Reflect.construct(subject, args);
 
-        that.invoke(subject, object, data);
         return object;
       },
 
@@ -104,11 +95,9 @@ module.exports = class Use {
     });
   }
 
-  invoke(subject, object, data) {
-    const providers = data.providers();
-
-    for (const index in providers) {
-      boot.provider(providers[index]).invoke(subject, object, data);
+  invoke(subject, object, manifest, event) {
+    for (const provider of Manifest.providers(manifest.getInvokes(event) || [])) {
+      provider[event](subject, object, manifest);
     }
   }
 

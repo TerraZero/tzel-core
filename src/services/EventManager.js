@@ -2,6 +2,7 @@
 
 const Listeners = require('listeners');
 
+const Manifest = use('core/reflect/Manifest');
 const Listener = use('core/annotations/Listener');
 const Event = use('core/events/Event');
 const listeners = {};
@@ -12,31 +13,26 @@ const listeners = {};
 module.exports = class EventManager {
 
   register() {
-    const datas = boot.getDatas();
-
-    for (const index in datas) {
-      if (datas[index].hasTag(Listener.name)) {
-        const annots = datas[index].getAnnotation(Listener.name);
-        const subject = new (use(datas[index].use()))();
-
-        for (const a in annots) {
-          const handler = this.getHandler(annots[a].data.value);
-
-          handler.add(subject[annots[a].target].bind(subject));
-        }
-      }
+    if (this._register === undefined) {
+      this._register = Manifest.getRegister('provider.event');
     }
+    return this._register;
   }
 
   getHandler(name) {
-    if (!this.hasHandler(name)) {
+    if (listeners[name] === undefined) {
       listeners[name] = new Listeners();
+      for (const item of this.register()[name]) {
+        const subject = new (use(item.key))();
+
+        listeners[name].add(subject[item.target].bind(subject));
+      }
     }
     return listeners[name];
   }
 
   hasHandler(name) {
-    return listeners[name] !== undefined;
+    return this.register()[name] !== undefined;
   }
 
   fire(mod, event, data = {}) {

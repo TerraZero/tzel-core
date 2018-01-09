@@ -2,16 +2,29 @@
 
 module.exports = class Provider {
 
-  constructor(annotation) {
-    this._annotation = annotation;
+  constructor(manifest) {
+    this._manifest = manifest;
   }
 
-  annotation() {
-    return this._annotation;
+  manifest() {
+    return this._manifest;
   }
 
-  subscribe(data) { }
+  describer() {
+    return this.manifest().getKey();
+  }
 
-  invoke(subject, object, data) { }
+  parsing(manifest, data) { }
+
+  addInvoke(manifest, type = 'construct', data = null) {
+    manifest.invokes[type] = manifest.invokes[type] || [];
+    manifest.invokes[type].push({
+      provider: this.manifest().key,
+      type: type,
+      data: data,
+    });
+  }
+
+  invoke() { }
 
 }

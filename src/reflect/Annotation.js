@@ -16,9 +16,40 @@ module.exports = class Annotation extends AnnotationBase {
    */
   static get targets() { return [this.DEFINITION, this.CONSTRUCTOR, this.PROPERTY, this.METHOD] }
 
+  static get targetTypes() {
+    if (this._types !== undefined) return this._types;
+    this._types = [];
+
+    for (const type of this.targets) {
+      this._types.push(this.types[type]);
+    }
+    return this._types;
+  }
+
+  static get types() {
+    const types = {};
+
+    types[this.DEFINITION] = 'definitions';
+    types[this.CONSTRUCTOR] = 'constructors';
+    types[this.PROPERTY] = 'properties';
+    types[this.METHOD] = 'methods';
+    return types;
+  }
+
   static get extendable() { return true }
 
   static get serve() { return false }
+
+  static meta() {
+    if (this._meta !== undefined) return this._meta;
+    this._meta = {
+      serve: this.constructor.serve,
+      extendable: this.constructor.extendable,
+      targets: this.constructor.targets,
+      name: this.name,
+    };
+    return this._meta;
+  }
 
   /**
    * Constructor to add attributes
@@ -55,14 +86,6 @@ module.exports = class Annotation extends AnnotationBase {
 
   props() {
     return {
-      serve: this.constructor.serve,
-      extendable: this.constructor.extendable,
-      targets: this.constructor.targets,
-    }
-  }
-
-  meta() {
-    return {
       target: this.target,
     }
   }
@@ -71,7 +94,7 @@ module.exports = class Annotation extends AnnotationBase {
     const data = {
       fields: {},
       props: this.props(),
-      meta: this.meta(),
+      meta: this.constructor.meta(),
     };
     const fields = this.fields();
 
