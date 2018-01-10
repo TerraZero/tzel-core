@@ -56,6 +56,7 @@ module.exports = class Use {
         const subject = this.getClass(target);
         const object = Reflect.construct(subject, args);
 
+        that.invoke(subject, object, this.getManifest(target), 'construct');
         return object;
       },
 

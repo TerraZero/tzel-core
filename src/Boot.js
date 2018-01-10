@@ -92,30 +92,6 @@ module.exports = class Boot {
     Manifest.parsing();
   }
 
-  getDatas() {
-    if (this._datas === null) {
-      this._datas = [];
-      for (const name in this.getMods()) {
-        Manifest.scan(this.mod(name));
-        const mod = this.mod(name);
-        const files = Glob.sync('**/*.js', {
-          cwd: mod.path(),
-          absolute: true,
-        });
-
-        for (const index in files) {
-          const parser = new Parser(files[index]);
-          const data = parser.getData();
-
-          data.setUse(mod.getUse(data.path()));
-          this._datas.push(data);
-        }
-      }
-    }
-    throw 'hallo';
-    return this._datas;
-  }
-
   addMod(data) {
     const mod = new Mod(data);
     this._mods[mod.key()] = mod;

@@ -8,6 +8,7 @@ const _data = {
 const _cache = {
   providers: null,
   classes: {},
+  objects: {},
 };
 
 module.exports = class Manifest {
@@ -148,6 +149,29 @@ module.exports = class Manifest {
     if (collection === null) return _data.register[provider.describer()];
     if (_data.register[provider.describer()] === undefined) return null;
     return _data.register[provider.describer()][collection];
+  }
+
+  static provide(collection, key) {
+    if (collection === null) {
+      const m = Manifest.get(key);
+      const subject = use(key);
+
+      if (!m.isAlias()) {
+        return new (subject)();
+      }
+      return subject;
+    } else {
+      if (_cache.objects[collection] === undefined || _cache.objects[collection][key] === undefined) {
+        _cache.objects[collection] = _cache.objects[collection] || {};
+        const m = Manifest.get(key);
+
+        _cache.objects[collection][key] = use(key);
+        if (!m.isAlias()) {
+          _cache.objects[collection][key] = new (_cache.objects[collection][key])();
+        }
+      }
+    }
+    return _cache.objects[collection][key];
   }
 
   constructor(search) {

@@ -38,12 +38,9 @@ module.exports = class Annotation extends AnnotationBase {
 
   static get extendable() { return true }
 
-  static get serve() { return false }
-
   static meta() {
     if (this._meta !== undefined) return this._meta;
     this._meta = {
-      serve: this.constructor.serve,
       extendable: this.constructor.extendable,
       targets: this.constructor.targets,
       name: this.name,
