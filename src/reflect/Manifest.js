@@ -51,6 +51,7 @@ module.exports = class Manifest {
         extended: false,
         invokes: {},
         data: {},
+        scope: 'new',
       };
     }
   }
@@ -261,6 +262,10 @@ module.exports = class Manifest {
     _data.register[provider.describer()] = _data.register[provider.describer()] || {};
     _data.register[provider.describer()][collection] = _data.register[provider.describer()][collection] || [];
     _data.register[provider.describer()][collection].push(value);
+  }
+
+  setScope(scope) {
+    this.data().scope = scope;
   }
 
 }
