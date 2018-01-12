@@ -28,14 +28,14 @@ module.exports = class ServiceProvider extends Provider.class {
 
     if (services.length) {
       manifest.addAlias(services[0].fields.value);
-      manifest.setScope('all');
+      manifest.setProvide('object');
     }
 
     const providers = manifest.getFromAnnotations(ProviderAnnotation);
 
     if (providers.length) {
       manifest.addAlias(providers[0].fields.value);
-      manifest.setScope('all');
+      manifest.setProvide('object');
     }
   }
 

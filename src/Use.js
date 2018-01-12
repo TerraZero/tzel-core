@@ -1,62 +1,57 @@
 'use strict';
 
-const Path = require('path');
-
 const Manifest = require('./reflect/Manifest');
-
-let debug = null;
 
 module.exports = class Use {
 
   constructor() {
-    debug = logger('debug', 'use');
     global.use = this.use.bind(this);
     this._proxies = {};
   }
 
   use(path) {
-    if (this._proxies[path]) return this._proxies[path];
+    const manifest = Manifest.get(path);
+    if (this._proxies[manifest.getKey()]) return this._proxies[manifest.getKey()];
     const that = this;
 
-    return this._proxies[path] = new Proxy(function () { }, {
+    return this._proxies[manifest.getKey()] = new Proxy(function () { }, {
 
       getClass: function getClass(target) {
         if (target.class === undefined) {
-          target.class = require(this.getManifest(target).file());
+          target.class = require(manifest.file());
         }
         return target.class;
       },
 
       getName: function getName(target) {
-        return this.getManifest(target).class();
-      },
-
-      getManifest: function getManifest(target) {
-        if (target.manifest === undefined) {
-          target.manifest = Manifest.get(path);
-        }
-        return target.manifest;
+        return manifest.class();
       },
 
       getSubject: function getSubject(target) {
-        if (this.getManifest(target).isAlias()) {
-          if (target.subject === undefined) {
-            const subject = this.getClass(target);
+        switch (manifest.getProvide()) {
+          case 'class':
+            return this.getClass(target);
+          case 'object':
+            if (target.subject === undefined) {
+              const subject = this.getClass(target);
 
-            target.subject = Reflect.construct(subject, []);
-            that.invoke(subject, target.subject, this.getManifest(target), 'construct');
-          }
-          return target.subject;
-        } else {
-          return this.getClass(target);
+              target.subject = Reflect.construct(subject, [manifest]);
+              that.invoke(subject, target.subject, manifest, 'construct');
+            }
+            return target.subject;
+          default:
+            throw new TypeError('The provide type "' + manifest.getProvide() + '" is unknown! Available options are "class" and "object".');
         }
       },
 
       construct: function construct(target, args, newTarget) {
+        if (manifest.getProvide() !== 'class') {
+          throw new TypeError('Only class of provide type "class" can be create with "new"!');
+        }
         const subject = this.getClass(target);
         const object = Reflect.construct(subject, args);
 
-        that.invoke(subject, object, this.getManifest(target), 'construct');
+        that.invoke(subject, object, manifest, 'construct');
         return object;
       },
 
@@ -67,7 +62,7 @@ module.exports = class Use {
           case 'name':
             return this.getName(target);
           case '__manifest':
-            return this.getManifest(target);
+            return manifest;
 
           default:
             if (typeof property === 'string' && property.indexOf('_') === 0) {

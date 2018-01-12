@@ -8,7 +8,6 @@ const _data = {
 const _cache = {
   providers: null,
   classes: {},
-  objects: {},
 };
 
 module.exports = class Manifest {
@@ -51,7 +50,7 @@ module.exports = class Manifest {
         extended: false,
         invokes: {},
         data: {},
-        scope: 'new',
+        provide: 'class',
       };
     }
   }
@@ -152,29 +151,6 @@ module.exports = class Manifest {
     return _data.register[provider.describer()][collection];
   }
 
-  static provide(collection, key) {
-    if (collection === null) {
-      const m = Manifest.get(key);
-      const subject = use(key);
-
-      if (!m.isAlias()) {
-        return new (subject)();
-      }
-      return subject;
-    } else {
-      if (_cache.objects[collection] === undefined || _cache.objects[collection][key] === undefined) {
-        _cache.objects[collection] = _cache.objects[collection] || {};
-        const m = Manifest.get(key);
-
-        _cache.objects[collection][key] = use(key);
-        if (!m.isAlias()) {
-          _cache.objects[collection][key] = new (_cache.objects[collection][key])();
-        }
-      }
-    }
-    return _cache.objects[collection][key];
-  }
-
   constructor(search) {
     this._search = search;
     this._key = null;
@@ -264,8 +240,18 @@ module.exports = class Manifest {
     _data.register[provider.describer()][collection].push(value);
   }
 
-  setScope(scope) {
-    this.data().scope = scope;
+  /**
+   * Options:
+   *   - class (default) - the class object
+   *   - object - the object of the class will be created
+   * @param {string} provide
+   */
+  setProvide(provide) {
+    this.data().provide = provide;
+  }
+
+  getProvide() {
+    return this.data().provide;
   }
 
 }
